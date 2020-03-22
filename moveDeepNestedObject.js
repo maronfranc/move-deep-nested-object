@@ -12,36 +12,38 @@ class MoveNestedObjectPath {
   toPlain(newKeyName = this.arrKeysPath[this.arrKeyLength - ONE]) {
     console.time("Find and move time");
 
-    const arrKeyCopy = [...this.arrKeysPath];
     this.recursiveFind();
 
-    this.deletePropertyPath(this.obj, arrKeyCopy);
+    this.deletePropertyPath(this.obj, this.arrKeysPath);
 
     console.timeEnd("Find and move time");
     return { ...this.obj, [newKeyName]: this.foundObject };
   }
 
   recursiveFind(objToFind = this.obj, index = ZERO) {
+    const currentPath = this.arrKeysPath[index];
     const objectHasKey = Object.prototype.hasOwnProperty.call(
       objToFind,
-      this.arrKeysPath[index]
+      currentPath
     );
 
     if (!objectHasKey && this.arrKeyLength !== index) {
       throw new Error(
-        `Array of paths did not correctly match object keys
-        Last KeyName: "${this.arrKeysPath[index]}"`
+        `Array of paths did not correctly match object keys:
+        Last KeyName: "${currentPath}"`
       );
     }
 
+    // loop through object keys and rerun this.recursiveFind method in deeper objects
     for (const keyName in objToFind) {
-      if (
-        objectHasKey ||
-        (this.arrKeyLength >= index && typeof objToFind[keyName] === "object")
-      ) {
+      const currentObjectValue = objToFind[keyName];
+      const isIndexInArrayLength = this.arrKeyLength >= index;
+      const isSelectedValueAnObject = typeof currentObjectValue === "object";
+
+      if (objectHasKey || (isIndexInArrayLength && isSelectedValueAnObject)) {
         console.count("Recursive search");
-        if (this.arrKeysPath[index] === keyName) {
-          this.recursiveFind(objToFind[keyName], index + ONE);
+        if (currentPath === keyName) {
+          this.recursiveFind(currentObjectValue, index + ONE);
         }
       } else {
         this.foundObject = { ...objToFind };
@@ -50,19 +52,16 @@ class MoveNestedObjectPath {
   }
 
   deletePropertyPath(obj, path) {
-    if (obj === undefined || path === undefined) {
-      return;
+    if (obj === undefined || typeof obj !== "object") {
+      throw new Error("Tried to delete with invalid object");
     }
 
-    for (let i = ZERO; i < path.length - ONE; i++) {
-      obj = obj[path[i]];
-
-      if (typeof obj === "undefined") {
-        return;
-      }
+    if (path === undefined) {
+      throw new Error("Tried to delete with undefined array paths");
     }
 
-    delete obj[path.pop()];
+    const arrKeyCopy = [...this.arrKeysPath];
+    delete obj[arrKeyCopy.pop()];
   }
 }
 
