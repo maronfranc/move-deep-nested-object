@@ -6,11 +6,12 @@ class MoveNestedObjectPath {
   constructor(arrKeysPath, obj) {
     this.arrKeysPath = Object.freeze(arrKeysPath.slice());
     this.lastArrKeysNumber = arrKeysPath.length - ONE;
+    this.lastPathName = this.arrKeysPath[this.lastArrKeysNumber];
     this.obj = obj;
     this.newObject;
   }
 
-  toPlain(newKeyName = this.arrKeysPath[this.lastArrKeysNumber]) {
+  toPlain(newKeyName = this.lastPathName) {
     if (this.arrKeysPath.length <= ONE) {
       console.error("Incomplete array of paths. At least two keys minimum.");
 
@@ -19,7 +20,7 @@ class MoveNestedObjectPath {
     console.time("Find and move");
 
     try {
-      this.recursiveFind();
+      this.recursiveFind(this.obj);
       this.deletePropertyPath();
 
       return { ...this.obj, [newKeyName]: this.newObject };
@@ -32,7 +33,7 @@ class MoveNestedObjectPath {
     }
   }
 
-  recursiveFind(objToFind = this.obj, index = ZERO) {
+  recursiveFind(objToFind, index = ZERO) {
     const currentPath = this.arrKeysPath[index];
     const objectHasKey = Object.prototype.hasOwnProperty.call(
       objToFind,
@@ -74,9 +75,7 @@ class MoveNestedObjectPath {
   }
 
   deletePropertyPath() {
-    delete this.dangerouslyMutableThisObj[
-      this.arrKeysPath[this.lastArrKeysNumber]
-    ];
+    delete this.dangerouslyMutableThisObj[this.lastPathName];
   }
 }
 
