@@ -5,26 +5,27 @@ const ONE = 1;
 class MoveNestedObjectPath {
   constructor(arrKeysPath, obj) {
     this.arrKeysPath = Object.freeze(arrKeysPath.slice());
-    this.arrKeysLength = arrKeysPath.length;
+    this.lastArrKeysNumber = arrKeysPath.length - ONE;
     this.obj = obj;
-    this.foundObject;
+    this.newObject;
   }
 
-  toPlain(newKeyName = this.arrKeysPath[this.arrKeysLength - ONE]) {
-    if (this.arrKeysLength <= ONE) {
+  toPlain(newKeyName = this.arrKeysPath[this.lastArrKeysNumber]) {
+    if (this.arrKeysPath.length <= ONE) {
       console.error("Incomplete array of paths. At least two keys minimum.");
+
       return this.obj;
     }
+    console.time("Find and move");
 
     try {
-      console.time("Find and move");
       this.recursiveFind();
+      this.deletePropertyPath();
 
-      this.deletePropertyPath(this.obj, this.arrKeysPath);
-
-      return { ...this.obj, [newKeyName]: this.foundObject };
+      return { ...this.obj, [newKeyName]: this.newObject };
     } catch (e) {
       console.error(e, "\nError thrown. Returning original object.");
+
       return this.obj;
     } finally {
       console.timeEnd("Find and move");
@@ -38,7 +39,7 @@ class MoveNestedObjectPath {
       currentPath
     );
 
-    if (!objectHasKey && this.arrKeysLength !== index) {
+    if (!objectHasKey && this.arrKeysPath.length !== index) {
       throw new Error(
         `Array of paths did not correctly match object keys:
         Last KeyName: "${currentPath}"`
@@ -48,7 +49,7 @@ class MoveNestedObjectPath {
     // loop through object keys and rerun recursiveFind() method in deeper matched objects
     for (const keyName in objToFind) {
       const currentObjectValue = objToFind[keyName];
-      const isIndexInArrayLength = this.arrKeysLength >= index;
+      const isIndexInArrayLength = this.arrKeysPath.length >= index;
       const isSelectedValueAnObject = typeof currentObjectValue === "object";
 
       if (objectHasKey || (isIndexInArrayLength && isSelectedValueAnObject)) {
@@ -59,34 +60,23 @@ class MoveNestedObjectPath {
             );
           }
 
+          if (index + ONE === this.lastArrKeysNumber) {
+            this.dangerouslyMutableThisObj = currentObjectValue;
+          }
+
           console.count("Recurvise find");
           this.recursiveFind(currentObjectValue, index + ONE);
         }
       } else {
-        this.foundObject = { ...objToFind };
+        this.newObject = { ...objToFind };
       }
     }
   }
 
-  deletePropertyPath(obj, path) {
-    if (obj === undefined || typeof obj !== "object") {
-      throw new Error("Tried to delete with invalid object");
-    }
-
-    if (path === undefined) {
-      throw new Error("Tried to delete with undefined array paths");
-    }
-
-    for (let i = ZERO; i < path.length - ONE; i++) {
-      obj = obj[path[i]];
-
-      if (typeof obj === "undefined") {
-        return;
-      }
-    }
-
-    const arrKeyCopy = [...this.arrKeysPath];
-    delete obj[arrKeyCopy.pop()];
+  deletePropertyPath() {
+    delete this.dangerouslyMutableThisObj[
+      this.arrKeysPath[this.lastArrKeysNumber]
+    ];
   }
 }
 
