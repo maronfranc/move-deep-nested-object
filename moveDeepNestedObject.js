@@ -11,13 +11,13 @@ class MoveNestedObjectPath {
   }
 
   toPlain(newKeyName = this.arrKeysPath[this.arrKeyLength - ONE]) {
-    console.time("Find and move time");
+    console.time("Find and move");
 
     this.recursiveFind();
 
     this.deletePropertyPath(this.obj, this.arrKeysPath);
 
-    console.timeEnd("Find and move time");
+    console.timeEnd("Find and move");
     return { ...this.obj, [newKeyName]: this.foundObject };
   }
 
@@ -42,7 +42,6 @@ class MoveNestedObjectPath {
       const isSelectedValueAnObject = typeof currentObjectValue === "object";
 
       if (objectHasKey || (isIndexInArrayLength && isSelectedValueAnObject)) {
-        console.count("Loop search");
         if (currentPath === keyName) {
           if (!isSelectedValueAnObject) {
             throw new Error(
@@ -50,6 +49,7 @@ class MoveNestedObjectPath {
             );
           }
 
+          console.count("Recurvise find");
           this.recursiveFind(currentObjectValue, index + ONE);
         }
       } else {
@@ -84,17 +84,18 @@ const user = {
   id: 123,
   email: "email@email.com",
   address: {
-    id: 1111,
+    id: 120,
     country: {
       id: 55,
       state: {
-        id: 3333,
+        id: 25,
+        name: "State Name",
         city: {
-          id: 25,
+          id: 2150,
           name: "City Name"
         },
         region: {
-          id: 4,
+          id: 3,
           name: "South"
         }
       }
@@ -102,9 +103,18 @@ const user = {
   }
 };
 
+const print = obj => console.log(JSON.stringify(obj, null, 2));
+
 const plainCity = new MoveNestedObjectPath(
   ["address", "country", "state", "city"],
   user
 ).toPlain();
 
-console.log(JSON.stringify(plainCity, null, 2));
+print(plainCity);
+
+const plainCityAndRegion = new MoveNestedObjectPath(
+  ["address", "country", "state", "region"],
+  plainCity
+).toPlain();
+
+print(plainCityAndRegion);
