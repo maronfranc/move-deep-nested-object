@@ -1,3 +1,4 @@
+// No magic numbers
 const ZERO = 0;
 const ONE = 1;
 
@@ -34,15 +35,21 @@ class MoveNestedObjectPath {
       );
     }
 
-    // loop through object keys and rerun this.recursiveFind method in deeper objects
+    // loop through object keys and rerun recursiveFind() method in deeper matched objects
     for (const keyName in objToFind) {
       const currentObjectValue = objToFind[keyName];
       const isIndexInArrayLength = this.arrKeyLength >= index;
       const isSelectedValueAnObject = typeof currentObjectValue === "object";
 
       if (objectHasKey || (isIndexInArrayLength && isSelectedValueAnObject)) {
-        console.count("Recursive search");
+        console.count("Loop search");
         if (currentPath === keyName) {
+          if (!isSelectedValueAnObject) {
+            throw new Error(
+              `{ ${keyName} } value in array of paths is not an object:`
+            );
+          }
+
           this.recursiveFind(currentObjectValue, index + ONE);
         }
       } else {
@@ -58,6 +65,14 @@ class MoveNestedObjectPath {
 
     if (path === undefined) {
       throw new Error("Tried to delete with undefined array paths");
+    }
+
+    for (let i = ZERO; i < path.length - ONE; i++) {
+      obj = obj[path[i]];
+
+      if (typeof obj === "undefined") {
+        return;
+      }
     }
 
     const arrKeyCopy = [...this.arrKeysPath];
