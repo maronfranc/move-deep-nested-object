@@ -5,23 +5,26 @@ const ONE = 1;
 class MoveNestedObjectPath {
   constructor(arrKeysPath, obj) {
     this.arrKeysPath = Object.freeze(arrKeysPath.slice());
-    this.arrKeyLength = arrKeysPath.length;
+    this.arrKeysLength = arrKeysPath.length;
     this.obj = obj;
     this.foundObject;
   }
 
-  toPlain(newKeyName = this.arrKeysPath[this.arrKeyLength - ONE]) {
-    console.time("Find and move");
+  toPlain(newKeyName = this.arrKeysPath[this.arrKeysLength - ONE]) {
+    if (this.arrKeysLength <= ONE) {
+      console.error("Incomplete array of paths. At least two keys minimum.");
+      return this.obj;
+    }
 
     try {
+      console.time("Find and move");
       this.recursiveFind();
 
       this.deletePropertyPath(this.obj, this.arrKeysPath);
 
       return { ...this.obj, [newKeyName]: this.foundObject };
     } catch (e) {
-      console.error(e);
-      console.error("Error thrown. Returning original object.");
+      console.error(e, "\nError thrown. Returning original object.");
       return this.obj;
     } finally {
       console.timeEnd("Find and move");
@@ -35,7 +38,7 @@ class MoveNestedObjectPath {
       currentPath
     );
 
-    if (!objectHasKey && this.arrKeyLength !== index) {
+    if (!objectHasKey && this.arrKeysLength !== index) {
       throw new Error(
         `Array of paths did not correctly match object keys:
         Last KeyName: "${currentPath}"`
@@ -45,7 +48,7 @@ class MoveNestedObjectPath {
     // loop through object keys and rerun recursiveFind() method in deeper matched objects
     for (const keyName in objToFind) {
       const currentObjectValue = objToFind[keyName];
-      const isIndexInArrayLength = this.arrKeyLength >= index;
+      const isIndexInArrayLength = this.arrKeysLength >= index;
       const isSelectedValueAnObject = typeof currentObjectValue === "object";
 
       if (objectHasKey || (isIndexInArrayLength && isSelectedValueAnObject)) {
