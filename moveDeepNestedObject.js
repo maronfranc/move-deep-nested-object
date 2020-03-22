@@ -13,12 +13,19 @@ class MoveNestedObjectPath {
   toPlain(newKeyName = this.arrKeysPath[this.arrKeyLength - ONE]) {
     console.time("Find and move");
 
-    this.recursiveFind();
+    try {
+      this.recursiveFind();
 
-    this.deletePropertyPath(this.obj, this.arrKeysPath);
+      this.deletePropertyPath(this.obj, this.arrKeysPath);
 
-    console.timeEnd("Find and move");
-    return { ...this.obj, [newKeyName]: this.foundObject };
+      return { ...this.obj, [newKeyName]: this.foundObject };
+    } catch (e) {
+      console.error(e);
+      console.error("Error thrown. Returning original object.");
+      return this.obj;
+    } finally {
+      console.timeEnd("Find and move");
+    }
   }
 
   recursiveFind(objToFind = this.obj, index = ZERO) {
@@ -45,7 +52,7 @@ class MoveNestedObjectPath {
         if (currentPath === keyName) {
           if (!isSelectedValueAnObject) {
             throw new Error(
-              `{ ${keyName} } value in array of paths is not an object:`
+              `["${keyName}"] value in array of paths is not an object:`
             );
           }
 
