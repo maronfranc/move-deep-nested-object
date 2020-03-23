@@ -3,6 +3,10 @@ const ZERO = 0;
 const ONE = 1;
 
 class MoveNestedObjectPath {
+  /**
+   * @param {string[]} arrKeysPath - Path to nested object.
+   * @param {Object} obj - Object with others nested objects.
+   */
   constructor(arrKeysPath, obj) {
     this.arrKeysPath = Object.freeze(arrKeysPath.slice());
     this.lastArrKeysNumber = arrKeysPath.length - ONE;
@@ -11,6 +15,11 @@ class MoveNestedObjectPath {
     this.newObject;
   }
 
+  /**
+   * Move deep nested object to the root of the object and rename it(optional).
+   *
+   * @param {string} [newKeyName = this.lastPathName] - New alias to the moved object.
+   */
   toPlain(newKeyName = this.lastPathName) {
     if (this.arrKeysPath.length <= ONE) {
       console.error("Incomplete array of paths. At least two keys minimum.");
@@ -33,6 +42,12 @@ class MoveNestedObjectPath {
     }
   }
 
+  /**
+   * Recursive method that creates a copy of a deep nested object.
+   *
+   * @param {Object} objToFind - Object to look through keys and find nested object.
+   * @param {number} index - Index that increments when a nested object is found.
+   */
   recursiveFind(objToFind, index = ZERO) {
     const currentPath = this.arrKeysPath[index];
     const objectHasKey = Object.prototype.hasOwnProperty.call(
@@ -62,7 +77,7 @@ class MoveNestedObjectPath {
           }
 
           if (index + ONE === this.lastArrKeysNumber) {
-            this.dangerouslyMutableThisObj = currentObjectValue;
+            this.dangerousMutableThisObj = currentObjectValue;
           }
 
           console.count("Recurvise find");
@@ -74,11 +89,17 @@ class MoveNestedObjectPath {
     }
   }
 
+  /**
+   * Uses reference to the second to last part of this.obj and deletes obj["lastPath"].
+   */
   deletePropertyPath() {
-    delete this.dangerouslyMutableThisObj[this.lastPathName];
+    delete this.dangerousMutableThisObj[this.lastPathName];
   }
 }
 
+/**
+ * Examples
+ */
 const user = {
   id: 123,
   email: "email@email.com",
@@ -95,7 +116,7 @@ const user = {
         },
         region: {
           id: 3,
-          name: "South"
+          name: "Southeast"
         }
       }
     }
